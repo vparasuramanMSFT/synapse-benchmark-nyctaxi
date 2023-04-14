@@ -47,24 +47,38 @@ In this exercise, we will load 1.5B records of data from parquet/csv gzip/csv fi
 
 | Command | Source Format | Total Size | Resource Class | Distribution | Index | Average Duration | Bytes Processed (GB) | Avg Mbps |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| COPY INTO | Parquet | 78 GB | smallrc | Round Robin | Heap | 14 mins | 264 | 320 |
-| COPY INTO | Parquet | 78 GB | smallrc | Round Robin | CCI | 19 mins | 264 | 231 |
-| COPY INTO | Parquet | 78 GB | smallrc | Hash | Heap | 15 mins | 264 | 295 |
-| COPY INTO | Parquet | 78 GB | smallrc | Hash | CCI | 26 mins | 264 | 172 |
 | COPY INTO | CSV GZip | 61 GB | smallrc | Round Robin | Heap | 11 mins | 216 | 314 |
-| COPY INTO | CSV GZip | 61 GB | smallrc | Round Robin | CCI | 19 mins | 216 | 190 |
 | COPY INTO | CSV GZip | 61 GB | smallrc | Hash | Heap | 12 mins | 216 | 292 |
-| COPY INTO | CSV GZip | 61 GB | smallrc | Hash | CCI | 24 mins | 216 | 152 |
 | COPY INTO | CSV | 261 GB | smallrc | Round Robin | Heap | 12 mins | 216 | 290 |
-| COPY INTO | CSV | 261 GB | smallrc | Round Robin | CCI | 18 mins | 216 | 197 |
+| COPY INTO | Parquet | 78 GB | smallrc | Round Robin | Heap | 14 mins | 264 | 320 |
 | COPY INTO | CSV | 261 GB | smallrc | Hash | Heap | 14 mins | 216 | 261 |
+| COPY INTO | Parquet | 78 GB | smallrc | Hash | Heap | 15 mins | 264 | 295 |
+| COPY INTO | CSV | 261 GB | smallrc | Round Robin | CCI | 18 mins | 216 | 197 |
+| COPY INTO | CSV GZip | 61 GB | smallrc | Round Robin | CCI | 19 mins | 216 | 190 |
+| COPY INTO | Parquet | 78 GB | smallrc | Round Robin | CCI | 19 mins | 264 | 231 |
 | COPY INTO | CSV | 261 GB | smallrc | Hash | CCI | 20 mins | 216 | 177 |
+| COPY INTO | CSV GZip | 61 GB | smallrc | Hash | CCI | 24 mins | 216 | 152 |
+| COPY INTO | Parquet | 78 GB | smallrc | Hash | CCI | 26 mins | 264 | 172 |
 
-As we can infer from the above table, the best performance is achieved using: CSV Gzip - Round Robin - Heap (11 mins).
-Slowest load was using: Parquet - Round Robin - CCI (26 mins)
+As we can infer from the above table:
+> Fastest load is achieved using: **CSV Gzip - Round Robin - Heap (11 mins)**
 
-In general, Round Robin is faster than Hash and Heap is faster than CCI, which is very evident from the results.
+> Slowest load was using: **Parquet - Round Robin - CCI (26 mins)**
 
-But if you have to get an optimal performance in loading to final table with CCI, it might be worth considering Hash while loading the staging, as it will subsequently reduce the data movements operations for further CTAS in your ETL.
+In terms of formats:
 
-Considering the time difference between GZip Round Robin and GZip Hash, it is 11 min vs 12 min, but that will offset the subsequent CTAS load performance by avoiding some data movements.
+> **CSV GZip < CSV < Parquet**
+
+In terms of distribution: Round Robin is faster than Hash:
+
+> **Round Robin < Hash**
+
+In terms of indexing:
+
+> **Heap < CCI**
+
+So in combination, for any given format:
+
+> **Round Robin Heap < Hash Heap < Round Robin CCI < Hash CCI**
+
+But if you have to get an optimal performance in loading to final table with CCI, it might be worth considering ***Hash Heap*** while loading the staging, as it will subsequently reduce the data movements operations for further CTAS in your ETL. Considering the time difference between GZip Round Robin and GZip Hash, it is 11 min vs 12 min, but that will offset the subsequent CTAS load performance by avoiding some data movements.

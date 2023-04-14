@@ -7,9 +7,7 @@ SELECT   r.[start_time]
 ,       r.total_elapsed_time as total_elapsed_time_millisec
 ,       r.total_elapsed_time/1000 as total_elapsed_time_sec
 ,       r.total_elapsed_time/60000 as total_elapsed_time_min
-,       avg(w.bytes_per_sec) as average_bytes_per_sec
-,       min(w.bytes_per_sec) as min_bytes_per_sec
-,       max(w.bytes_per_sec) as max_bytes_per_sec
+,       (sum(w.bytes_processed)/(1024*1024))/(r.total_elapsed_time/1000) as average_mbps
 ,       sum(w.bytes_processed) AS bytes_processed
 ,       sum(w.bytes_processed)/(1024*1024) AS bytes_processed_mb
 ,       sum(w.bytes_processed)/(1024*1024*1024) AS bytes_processed_gb
@@ -25,4 +23,4 @@ GROUP BY r.[start_time], r.[request_id],
         r.resource_class,
         r.command,
         r.total_elapsed_time
-ORDER BY r.[request_id] desc
+ORDER BY r.[start_time] desc
